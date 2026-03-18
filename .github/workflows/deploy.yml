@@ -1,0 +1,31 @@
+name: Deploy to Firebase Hosting
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write # Required for Workload Identity Federation
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # Authenticate via Workload Identity Federation (no secrets needed)
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/968306158285/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: firebase-adminsdk-fbsvc@swarmfund.iam.gserviceaccount.com
+
+      # Deploy using firebase-tools CLI (respects GOOGLE_APPLICATION_CREDENTIALS from auth step)
+      - run: npx firebase-tools deploy --only hosting --project swarmfund

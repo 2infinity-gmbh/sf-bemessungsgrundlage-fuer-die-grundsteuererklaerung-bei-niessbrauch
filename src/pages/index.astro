@@ -1,0 +1,41 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const articles = (await getCollection('articles')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<Layout title="Startseite" description="Aktuelle Artikel und Ratgeber">
+  <h1 class="text-3xl font-bold mb-8">Aktuelle Artikel</h1>
+
+  {articles.length === 0 ? (
+    <p class="text-gray-500">Noch keine Artikel vorhanden. Schau bald wieder vorbei!</p>
+  ) : (
+    <ul class="space-y-6">
+      {articles.map((article) => (
+        <li class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+          <a href={`/artikel/${article.id}`} class="block">
+            <h2 class="text-xl font-semibold text-blue-600 hover:text-blue-800">
+              {article.data.title}
+            </h2>
+            {article.data.description && (
+              <p class="mt-2 text-gray-600">{article.data.description}</p>
+            )}
+            <time
+              datetime={article.data.pubDate.toISOString()}
+              class="mt-2 block text-sm text-gray-400"
+            >
+              {article.data.pubDate.toLocaleDateString('de-DE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Layout>
